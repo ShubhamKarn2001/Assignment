@@ -1,74 +1,46 @@
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
 
-public class GenesCount {
-    public static List<String> genesCount(InputGenerator<Character> gen, int k) {
+public class MyClass {
+
+    public static List<String> genesCount(String sequence, int k) {
         if (k <= 0) {
-            return new ArrayList<>();
+            throw new IllegalArgumentException("k must be positive");
         }
 
-        Map<String, Integer> geneFreq = new HashMap<>();
-
-        while (gen.hasNext()) {
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < k && gen.hasNext(); i++) {
-                sb.append(gen.next());
-            }
-            String gene = sb.toString();
-            geneFreq.put(gene, geneFreq.getOrDefault(gene, 0) + 1);
+        HashMap<String, Integer> geneCounts = new HashMap<>();
+        StringBuilder currentGene = new StringBuilder();
+        
+        for (int i = 0; i <= sequence.length() - k; i++) {
+            String gene = sequence.substring(i, i + k);
+            geneCounts.put(gene, geneCounts.getOrDefault(gene, 0) + 1);
         }
 
-        List<Map.Entry<String, Integer>> geneList = new ArrayList<>(geneFreq.entrySet());
-
-        Collections.sort(geneList, (a, b) -> {
-            if (a.getValue().equals(b.getValue())) {
-                return a.getKey().compareTo(b.getKey());
-            } else {
-                return b.getValue().compareTo(a.getValue());
-            }
-        });
-
-        List<String> result = new ArrayList<>();
-        for (Map.Entry<String, Integer> entry : geneList) {
-            result.add(entry.getKey());
-        }
-
-        return result;
+        List<String> genes = new ArrayList<>(geneCounts.keySet());
+        genes.sort(new GeneComparator(geneCounts));
+        return genes;
     }
 
-    interface InputGenerator<T> {
-        boolean hasNext();
-        T next();
-    }
+    private static class GeneComparator implements Comparator<String> {
+        private final HashMap<String, Integer> geneCounts;
 
-    static class ExampleInputGenerator implements InputGenerator<Character> {
-        private String sequence;
-        private int index;
-
-        public ExampleInputGenerator(String sequence) {
-            this.sequence = sequence;
-            this.index = 0;
+        public GeneComparator(HashMap<String, Integer> geneCounts) {
+            this.geneCounts = geneCounts;
         }
 
-        public boolean hasNext() {
-            return index < sequence.length();
-        }
-
-        public Character next() {
-            if (!hasNext()) {
-                throw new NoSuchElementException();
-            }
-            return sequence.charAt(index++);
+        @Override
+        public int compare(String gene1, String gene2) {
+            int countComparison = geneCounts.get(gene2) - geneCounts.get(gene1);
+            return countComparison != 0 ? countComparison : gene1.compareTo(gene2);
         }
     }
 
     public static void main(String[] args) {
-        String[] sequences = {"AAAA", "AUAAA", "AUAAUAA", "UGCGAAUAUA", "UUUUCCCCAAAA", ""};
-        int[] ks = {3, 3, 3, 3, 12, 3};
-        for (int i = 0; i < sequences.length; i++) {
-            InputGenerator<Character> generator = new ExampleInputGenerator(sequences[i]);
-            List<String> result = genesCount(generator, ks[i]);
-            System.out.println("Sequence: " + sequences[i] + ", k = " + ks[i] + ", Genes: " + result);
-        }
+        String sequence = "ATGCGATGACCTAT";
+        int k = 3;
+        List<String> genes = genesCount(sequence, k);
+        System.out.println("Genes with frequency: " + genes);
     }
 }
-
