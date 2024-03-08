@@ -1,1 +1,74 @@
+import java.util.*;
+
+public class GenesCount {
+    public static List<String> genesCount(InputGenerator<Character> gen, int k) {
+        if (k <= 0) {
+            return new ArrayList<>();
+        }
+
+        Map<String, Integer> geneFreq = new HashMap<>();
+
+        while (gen.hasNext()) {
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < k && gen.hasNext(); i++) {
+                sb.append(gen.next());
+            }
+            String gene = sb.toString();
+            geneFreq.put(gene, geneFreq.getOrDefault(gene, 0) + 1);
+        }
+
+        List<Map.Entry<String, Integer>> geneList = new ArrayList<>(geneFreq.entrySet());
+
+        Collections.sort(geneList, (a, b) -> {
+            if (a.getValue().equals(b.getValue())) {
+                return a.getKey().compareTo(b.getKey());
+            } else {
+                return b.getValue().compareTo(a.getValue());
+            }
+        });
+
+        List<String> result = new ArrayList<>();
+        for (Map.Entry<String, Integer> entry : geneList) {
+            result.add(entry.getKey());
+        }
+
+        return result;
+    }
+
+    interface InputGenerator<T> {
+        boolean hasNext();
+        T next();
+    }
+
+    static class ExampleInputGenerator implements InputGenerator<Character> {
+        private String sequence;
+        private int index;
+
+        public ExampleInputGenerator(String sequence) {
+            this.sequence = sequence;
+            this.index = 0;
+        }
+
+        public boolean hasNext() {
+            return index < sequence.length();
+        }
+
+        public Character next() {
+            if (!hasNext()) {
+                throw new NoSuchElementException();
+            }
+            return sequence.charAt(index++);
+        }
+    }
+
+    public static void main(String[] args) {
+        String[] sequences = {"AAAA", "AUAAA", "AUAAUAA", "UGCGAAUAUA", "UUUUCCCCAAAA", ""};
+        int[] ks = {3, 3, 3, 3, 12, 3};
+        for (int i = 0; i < sequences.length; i++) {
+            InputGenerator<Character> generator = new ExampleInputGenerator(sequences[i]);
+            List<String> result = genesCount(generator, ks[i]);
+            System.out.println("Sequence: " + sequences[i] + ", k = " + ks[i] + ", Genes: " + result);
+        }
+    }
+}
 
